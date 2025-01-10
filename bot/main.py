@@ -1,30 +1,38 @@
+# bot/main.py
 import logging
-import os
-from dotenv import load_dotenv
-from telegram import Update
-from telegram.ext import ApplicationBuilder, ContextTypes, CommandHandler
+from telegram.ext import ApplicationBuilder, CommandHandler
+from config.settings import TELEGRAM_BOT_TOKEN
+from database.db import init_db
+from bot.handlers.start_handler import start
+from bot.handlers.settings_handler import settings
+from bot.handlers.report_handler import report
+from config.logging_config import setup_logging
 
-# Load environment variables from the .env file
-load_dotenv()
-
-# Get the Telegram bot token from the environment variables
-BOT_TOKEN = os.getenv('TELEGRAM_BOT_TOKEN')
-
-logging.basicConfig(
-    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
-    level=logging.INFO
-)
-
-async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    await context.bot.send_message(chat_id=update.effective_chat.id, text="I'm a bot, please talk to me!")
-
-if __name__ == '__main__':
-    if not BOT_TOKEN:
-        raise ValueError("The Telegram bot token is missing. Please check your .env file.")
-
-    application = ApplicationBuilder().token(BOT_TOKEN).build()
+def main():
+    # Инициализация логирования
+    setup_logging()
+    logger = logging.getLogger(__name__)
     
-    start_handler = CommandHandler('start', start)
-    application.add_handler(start_handler)
+    # Проверяем наличие токена
+    if not TELEGRAM_BOT_TOKEN:
+        logger.error("The TELEGRAM_BOT_TOKEN is missing. Please check your .env file.")
+        raise ValueError("The TELEGRAM_BOT_TOKEN is missing. Please check your .env file.")
     
+    # Инициализация базы данных
+    db_conn = init_db()
+    logger.info("Database initialized successfully.")
+    
+    # Создание приложения Telegram Bot
+    application = ApplicationBuilder().token(TELEGRAM_BOT_TOKEN).build()
+    
+    # Регистрация обработчиков команд
+    application.add_handler(CommandHandler("start", start))
+    application.add_handler(CommandHandler("settings", settings))
+    application.add_handler(CommandHandler("report", report))
+    
+    # Запуск polling
+    logger.info("Starting bot polling...")
     application.run_polling()
+
+if __name__ == "__main__":
+    main()
