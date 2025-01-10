@@ -2,11 +2,14 @@
 import logging
 from telegram.ext import ApplicationBuilder, CommandHandler
 from config.settings import TELEGRAM_BOT_TOKEN
-from database.db import init_db
 from bot.handlers.start_handler import start
 from bot.handlers.settings_handler import settings
 from bot.handlers.report_handler import report
 from config.logging_config import setup_logging
+from database.db import init_db
+from database.models import User, ContactedSeller
+from sqlalchemy.orm import Session
+
 
 def main():
     # Инициализация логирования
@@ -19,7 +22,7 @@ def main():
         raise ValueError("The TELEGRAM_BOT_TOKEN is missing. Please check your .env file.")
     
     # Инициализация базы данных
-    db_conn = init_db()
+    SessionLocal = init_db()
     logger.info("Database initialized successfully.")
     
     # Создание приложения Telegram Bot
