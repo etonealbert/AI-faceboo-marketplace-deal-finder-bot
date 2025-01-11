@@ -1,6 +1,8 @@
 from telegram import Update, KeyboardButton, ReplyKeyboardMarkup
 from telegram.ext import ContextTypes, ConversationHandler
+import logging
 
+logger = logging.getLogger(__name__)
 
 def format_report(data):
     # Форматирование отчёта для пользователя
