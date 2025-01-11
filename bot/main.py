@@ -8,13 +8,16 @@ from config.logging_config import setup_logging
 from database.db import init_db, SessionLocal
 from database.models import User, ContactedSeller
 from telegram import BotCommand
+from telegram.ext import CallbackQueryHandler
+from bot.handlers.button_handler import button_handler
+
 import nest_asyncio
 nest_asyncio.apply()
 
 async def set_bot_commands(application):
     commands = [
         BotCommand("start", "🚀 Start the bot"),
-        BotCommand("search", "🔍 New vehicle search"),
+        BotCommand("search", "🔍 New search"),
         BotCommand("preferences", "My preferences"),
         BotCommand("update", "🔄 Update"),
         BotCommand("settings", "⚙️ Settings"),
@@ -43,7 +46,8 @@ async def main():
     application.add_handler(CommandHandler("start", start))
     application.add_handler(CommandHandler("settings", settings))
     application.add_handler(CommandHandler("report", report))
-    
+    application.add_handler(CallbackQueryHandler(button_handler))
+    # application.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, settings))
     # Set bot commands
     await set_bot_commands(application)
     
