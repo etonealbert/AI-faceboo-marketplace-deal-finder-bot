@@ -7,7 +7,27 @@ from bot.handlers.settings_handler import settings
 from bot.handlers.report_handler import report
 from bot.handlers.subscriptions_handler import handle_subscriptions
 from bot.handlers.check_preferences_handler import handle_check_preferences
-from bot.handlers.search_new_vehicle_handler import handle_search_new_vehicle
+from bot.handlers.search_new_vehicle_handler import  (
+    handle_search_new_vehicle,
+    ask_vehicle_type,
+    ask_brand,
+    ask_model,
+    ask_condition,
+    ask_price_range,
+    ask_year_range,
+    ask_mileage_range,
+    ask_car_color,
+    ask_car_condition,
+    ask_location,
+    ask_transmission,
+    ask_fuel_type,
+    ask_drive_type,
+    ask_doors,
+    ask_listing_condition,
+    ask_keywords,
+    ask_has_images,
+    confirm_preferences
+)
 from telegram import Update
 from telegram.ext import ContextTypes
 from config.logging_config import setup_logging
@@ -22,6 +42,28 @@ nest_asyncio.apply()
 
 # Define states for the conversation handler
 MAIN_MENU = range(1)  # Use a single state
+
+# Conversation states
+(
+    SELECT_VEHICLE_TYPE,
+    SELECT_BRAND,
+    SELECT_MODEL,
+    SELECT_CONDITION,
+    SELECT_PRICE_RANGE,
+    SELECT_YEAR_RANGE,
+    SELECT_MILEAGE_RANGE,
+    SELECT_CAR_COLOR,
+    SELECT_CAR_CONDITION,
+    SELECT_OPTIONAL_LOCATION,
+    SELECT_OPTIONAL_TRANSMISSION,
+    SELECT_OPTIONAL_FUEL_TYPE,
+    SELECT_OPTIONAL_DRIVE_TYPE,
+    SELECT_OPTIONAL_DOORS,
+    SELECT_OPTIONAL_LISTING_CONDITION,
+    SELECT_OPTIONAL_KEYWORDS,
+    SELECT_OPTIONAL_IMAGES,
+    CONFIRM,
+) = range(18)
 
 # Logging setup
 logger = logging.getLogger(__name__)
@@ -84,17 +126,43 @@ async def main():
                     handle_subscriptions
                 ),
                 # Add a fallback to catch everything else
-                MessageHandler(filters.TEXT, fallback_handler),
+                # MessageHandler(filters.TEXT, fallback_handler),
             ]
         },
-        fallbacks=[MessageHandler(filters.ALL, fallback_handler)],
+        fallbacks=[],
     )
-
+    
+    search_vehicle_conv_handler = ConversationHandler(
+        entry_points=[CommandHandler("search", handle_search_new_vehicle)],
+        states = {
+            SELECT_VEHICLE_TYPE: [MessageHandler(filters.TEXT & ~filters.COMMAND, ask_vehicle_type)],
+            SELECT_BRAND: [MessageHandler(filters.TEXT & ~filters.COMMAND, ask_brand)],
+            SELECT_MODEL: [MessageHandler(filters.TEXT & ~filters.COMMAND, ask_model)],
+            SELECT_CONDITION: [MessageHandler(filters.TEXT & ~filters.COMMAND, ask_condition)],
+            SELECT_PRICE_RANGE: [MessageHandler(filters.TEXT & ~filters.COMMAND, ask_price_range)],
+            SELECT_YEAR_RANGE: [MessageHandler(filters.TEXT & ~filters.COMMAND, ask_year_range)],
+            SELECT_MILEAGE_RANGE: [MessageHandler(filters.TEXT & ~filters.COMMAND, ask_mileage_range)],
+            SELECT_CAR_COLOR: [MessageHandler(filters.TEXT & ~filters.COMMAND, ask_car_color)],
+            SELECT_CAR_CONDITION: [MessageHandler(filters.TEXT & ~filters.COMMAND, ask_car_condition)],
+            SELECT_OPTIONAL_LOCATION: [MessageHandler(filters.TEXT & ~filters.COMMAND, ask_location)],
+            SELECT_OPTIONAL_TRANSMISSION: [MessageHandler(filters.TEXT & ~filters.COMMAND, ask_transmission)],
+            SELECT_OPTIONAL_FUEL_TYPE: [MessageHandler(filters.TEXT & ~filters.COMMAND, ask_fuel_type)],
+            SELECT_OPTIONAL_DRIVE_TYPE: [MessageHandler(filters.TEXT & ~filters.COMMAND, ask_drive_type)],
+            SELECT_OPTIONAL_DOORS: [MessageHandler(filters.TEXT & ~filters.COMMAND, ask_doors)],
+            SELECT_OPTIONAL_LISTING_CONDITION: [MessageHandler(filters.TEXT & ~filters.COMMAND, ask_listing_condition)],
+            SELECT_OPTIONAL_KEYWORDS: [MessageHandler(filters.TEXT & ~filters.COMMAND, ask_keywords)],
+            SELECT_OPTIONAL_IMAGES: [MessageHandler(filters.TEXT & ~filters.COMMAND, ask_has_images)],
+            CONFIRM: [MessageHandler(filters.TEXT & ~filters.COMMAND, confirm_preferences)],
+        },
+        fallbacks=[],
+    )
     
     # application.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, settings))
 
 
     application.add_handler(conv_handler)
+    application.add_handler(search_vehicle_conv_handler)
+
 
     # Set bot commands
     await set_bot_commands(application)
@@ -106,5 +174,7 @@ async def main():
 if __name__ == "__main__":
     import asyncio
     asyncio.run(main())
+
+
 
 

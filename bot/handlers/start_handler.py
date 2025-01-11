@@ -5,9 +5,7 @@ from telegram.ext import (
     MessageHandler,
     ConversationHandler,
 )
-from sqlalchemy.orm import Session
 from database.models import User
-from database.db import SessionLocal
 from database.db import SessionLocal
 
 import logging
@@ -31,7 +29,7 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
         # Check if the user already exists
         existing_user = (
             session.query(User)
-            .filter((User.id == user.id) | (User.username == username))
+            .filter((User.id == user.id))
             .first()
         )
 
