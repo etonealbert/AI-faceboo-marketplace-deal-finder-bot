@@ -11,13 +11,16 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     user = update.effective_user
     logger.info(f"Received /start command from user {user.id} ({user.username})")
     
+    # Use a default username if it's None
+    username = user.username or f"user_{user.id}"  # Assign a fallback username if `user.username` is None
+    
     # Start a database session
     with SessionLocal() as session:
         # Check if the user already exists
-        existing_user = session.query(User).filter((User.id == user.id) | (User.username == user.username)).first()
+        existing_user = session.query(User).filter((User.id == user.id) | (User.username == username)).first()
         
         if existing_user:
-            logger.info(f"User {user.username} already exists with ID {user.id}")
+            logger.info(f"User {username} already exists with ID {user.id}")
             
             # Check if the preferences field is not empty
             if existing_user.preferences:
@@ -34,10 +37,10 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
                 ]
         else:
             # Create a new user if it doesn't exist
-            new_user = User(id=user.id, username=user.username)
+            new_user = User(id=user.id, username=username)
             session.add(new_user)
             session.commit()
-            logger.info(f"Created new user {user.username} with ID {user.id}")
+            logger.info(f"Created new user {username} with ID {user.id}")
             
             # New user, show only one button
             keyboard = [
@@ -47,7 +50,6 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     # Send a message with the appropriate buttons
     reply_markup = ReplyKeyboardMarkup(keyboard, resize_keyboard=True)
     await update.message.reply_text("Choose an option:", reply_markup=reply_markup)
-
 
 
 # # Querying

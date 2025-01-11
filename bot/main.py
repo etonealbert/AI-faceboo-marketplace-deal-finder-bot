@@ -1,10 +1,32 @@
+import logging
+from telegram.ext import ApplicationBuilder, CommandHandler
+from config.settings import TELEGRAM_BOT_TOKEN
+from bot.handlers.start_handler import start
+from bot.handlers.settings_handler import settings
+from bot.handlers.report_handler import report
+from config.logging_config import setup_logging
+from database.db import init_db, SessionLocal
+from database.models import User, ContactedSeller
 from telegram import BotCommand
+import nest_asyncio
+nest_asyncio.apply()
 
-def main():
+async def set_bot_commands(application):
+    commands = [
+        BotCommand("start", "🚀 Start the bot"),
+        BotCommand("search", "🔍 New vehicle search"),
+        BotCommand("preferences", "My preferences"),
+        BotCommand("update", "🔄 Update"),
+        BotCommand("settings", "⚙️ Settings"),
+        BotCommand("support", "💬 Support")
+    ]
+    await application.bot.set_my_commands(commands)
+
+async def main():
     # Initialize logging
     setup_logging()
     logger = logging.getLogger(__name__)
-    
+
     # Check for token
     if not TELEGRAM_BOT_TOKEN:
         logger.error("The TELEGRAM_BOT_TOKEN is missing. Please check your .env file.")
@@ -22,20 +44,15 @@ def main():
     application.add_handler(CommandHandler("settings", settings))
     application.add_handler(CommandHandler("report", report))
     
-    # Set bot commands for the menu
-    commands = [
-    BotCommand("start", "🚀 Start the bot and show the welcome message"),
-    BotCommand("search", "🔍 New vehicle search"),
-    BotCommand("preferences", "My preferencess"),
-    BotCommand("update_subscriptions", "🔄 Update your subscriptions"),
-    BotCommand("settings", "⚙️ Settings"),
-    BotCommand("support", "💬 Support")
-    ]
-    application.bot.set_my_commands(commands)
+    # Set bot commands
+    await set_bot_commands(application)
     
     # Start polling
     logger.info("Starting bot polling...")
-    application.run_polling()
-
+    await application.run_polling()
+    
 if __name__ == "__main__":
-    main()
+    import asyncio
+    asyncio.run(main())
+
+
