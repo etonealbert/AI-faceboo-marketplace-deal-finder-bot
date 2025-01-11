@@ -1,4 +1,4 @@
-from telegram import Update, InlineKeyboardMarkup, InlineKeyboardButton
+from telegram import Update, InlineKeyboardMarkup, InlineKeyboardButton, KeyboardButton, ReplyKeyboardMarkup
 from telegram.ext import ContextTypes
 from sqlalchemy.orm import Session
 from database.models import User
@@ -23,14 +23,14 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
             if existing_user.preferences:
                 # Preferences exist, show all three buttons
                 keyboard = [
-                    [InlineKeyboardButton("Check preferences", callback_data="check_preferences")],
-                    [InlineKeyboardButton("Subscriptions", callback_data="subscriptions")],
-                    [InlineKeyboardButton("Search new vehicle", callback_data="search_vehicle")]
+                    [KeyboardButton("Check preferences")],
+                    [KeyboardButton("Subscriptions")],
+                    [KeyboardButton("Search new vehicle")]
                 ]
             else:
                 # Preferences do not exist, show only one button
                 keyboard = [
-                    [InlineKeyboardButton("Search new vehicle", callback_data="search_vehicle")]
+                    [KeyboardButton("Search new vehicle")]
                 ]
         else:
             # Create a new user if it doesn't exist
@@ -41,11 +41,11 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
             
             # New user, show only one button
             keyboard = [
-                [InlineKeyboardButton("Search new vehicle", callback_data="search_vehicle")]
+                [KeyboardButton("Search new vehicle")]
             ]
     
     # Send a message with the appropriate buttons
-    reply_markup = InlineKeyboardMarkup(keyboard)
+    reply_markup = ReplyKeyboardMarkup(keyboard, resize_keyboard=True)
     await update.message.reply_text("Choose an option:", reply_markup=reply_markup)
 
 
