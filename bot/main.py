@@ -1,5 +1,6 @@
 import logging
 from telegram.ext import ApplicationBuilder, CommandHandler
+from telegram import ReplyKeyboardRemove
 from telegram.ext import  CommandHandler, MessageHandler, filters, ConversationHandler
 from config.settings import TELEGRAM_BOT_TOKEN
 from bot.handlers.start_handler import start
@@ -76,16 +77,20 @@ async def set_bot_commands(application):
         BotCommand("update", "🔄 Update"),
         BotCommand("settings", "⚙️ Settings"),
         BotCommand("support", "💬 Support"),
-        BotCommand("report", "Report")
+        BotCommand("report", "Report"),
+        BotCommand("cancel", "Cancel"),
 
     ]
     await application.bot.set_my_commands(commands)
 
-async def fallback_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    # Just log whatever text user sent that didn't match
-    logger.info(f"Fallback triggered. User message text: {update.message.text}")
-    await update.message.reply_text("I didn't understand that, sorry!")
-    return MAIN_MENU  # or stay in the same state
+async def fallback_handler(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
+    """Interrupts the current conversation and ends the ConversationHandler."""
+    await update.message.reply_text(
+        text="The transport search dialogue has been interrupted. To start over, enter /search.",
+        reply_markup=ReplyKeyboardRemove()  # Removes the keyboard
+    )
+    return ConversationHandler.END
+
 
 
 async def main():
@@ -127,9 +132,29 @@ async def main():
                 ),
                 # Add a fallback to catch everything else
                 # MessageHandler(filters.TEXT, fallback_handler),
-            ]
+            ],
+            SELECT_VEHICLE_TYPE: [MessageHandler(filters.TEXT & ~filters.COMMAND, ask_vehicle_type)],
+            SELECT_BRAND: [MessageHandler(filters.TEXT & ~filters.COMMAND, ask_brand)],
+            SELECT_MODEL: [MessageHandler(filters.TEXT & ~filters.COMMAND, ask_model)],
+            SELECT_CONDITION: [MessageHandler(filters.TEXT & ~filters.COMMAND, ask_condition)],
+            SELECT_PRICE_RANGE: [MessageHandler(filters.TEXT & ~filters.COMMAND, ask_price_range)],
+            SELECT_YEAR_RANGE: [MessageHandler(filters.TEXT & ~filters.COMMAND, ask_year_range)],
+            SELECT_MILEAGE_RANGE: [MessageHandler(filters.TEXT & ~filters.COMMAND, ask_mileage_range)],
+            SELECT_CAR_COLOR: [MessageHandler(filters.TEXT & ~filters.COMMAND, ask_car_color)],
+            SELECT_CAR_CONDITION: [MessageHandler(filters.TEXT & ~filters.COMMAND, ask_car_condition)],
+            SELECT_OPTIONAL_LOCATION: [MessageHandler(filters.TEXT & ~filters.COMMAND, ask_location)],
+            SELECT_OPTIONAL_TRANSMISSION: [MessageHandler(filters.TEXT & ~filters.COMMAND, ask_transmission)],
+            SELECT_OPTIONAL_FUEL_TYPE: [MessageHandler(filters.TEXT & ~filters.COMMAND, ask_fuel_type)],
+            SELECT_OPTIONAL_DRIVE_TYPE: [MessageHandler(filters.TEXT & ~filters.COMMAND, ask_drive_type)],
+            SELECT_OPTIONAL_DOORS: [MessageHandler(filters.TEXT & ~filters.COMMAND, ask_doors)],
+            SELECT_OPTIONAL_LISTING_CONDITION: [MessageHandler(filters.TEXT & ~filters.COMMAND, ask_listing_condition)],
+            SELECT_OPTIONAL_KEYWORDS: [MessageHandler(filters.TEXT & ~filters.COMMAND, ask_keywords)],
+            SELECT_OPTIONAL_IMAGES: [MessageHandler(filters.TEXT & ~filters.COMMAND, ask_has_images)],
+            CONFIRM: [MessageHandler(filters.TEXT & ~filters.COMMAND, confirm_preferences)],
         },
-        fallbacks=[],
+        fallbacks = [
+            MessageHandler(filters.COMMAND, fallback_handler)
+        ],
     )
     
     search_vehicle_conv_handler = ConversationHandler(
@@ -154,7 +179,9 @@ async def main():
             SELECT_OPTIONAL_IMAGES: [MessageHandler(filters.TEXT & ~filters.COMMAND, ask_has_images)],
             CONFIRM: [MessageHandler(filters.TEXT & ~filters.COMMAND, confirm_preferences)],
         },
-        fallbacks=[],
+        fallbacks = [
+            MessageHandler(filters.COMMAND, fallback_handler)
+        ],
     )
     
     # application.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, settings))

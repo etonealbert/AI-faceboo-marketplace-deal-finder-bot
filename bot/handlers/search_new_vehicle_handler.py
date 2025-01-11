@@ -427,17 +427,22 @@ async def confirm_preferences(update: Update, context: ContextTypes.DEFAULT_TYPE
     prefs_json_str = json.dumps(prefs, indent=4)
 
     await update.message.reply_text(
-        text=f"Here are your current preferences:\n\n{prefs_json_str}\n\nSaving to database..."
+        text=f"Here are your current preferences:\n\n{prefs_json_str}\n\n Сахраняю в бдшку..." # Saving to database..."
     )
 
     # ==== Save to the database ====
     user_id = update.effective_user.id  # or get from context / your logic
     with SessionLocal() as session:
+        # Attempt to find the user
         existing_user = session.query(User).filter(User.id == user_id).first()
         if existing_user:
-            existing_user.preferences = prefs  # store as a dictionary; many ORMs handle JSON automatically
-            session.commit()
-            await update.message.reply_text("Preferences saved successfully!")
+            # Convert preferences to a JSON string
+            existing_user.preferences = json.dumps(prefs)
+            try:
+                session.commit()
+                await update.message.reply_text("Preferences saved successfully!")
+            except Exception as e:
+                await update.message.reply_text(f"Error saving preferences: {e}")
         else:
             await update.message.reply_text(
                 "User not found in the database. Could not save preferences."
