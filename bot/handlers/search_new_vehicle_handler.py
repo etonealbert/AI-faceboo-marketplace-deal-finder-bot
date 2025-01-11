@@ -15,6 +15,7 @@ from telegram.ext import (
 from database.models import User
 from database.db import SessionLocal
 from bot.models.marksmakes import car_brands, motorcycle_brands
+import json
 
 # Conversation states
 (
@@ -416,18 +417,15 @@ async def ask_has_images(update: Update, context: ContextTypes.DEFAULT_TYPE) -> 
     # Finally, confirm preferences
     return await confirm_preferences(update, context)
 
-
-import json
-
 async def confirm_preferences(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
     """Final step: show user the gathered preferences and save to DB."""
-    prefs = context.user_data.get("preferences", {})
+    new_prefs = context.user_data.get("preferences", {})
 
     # Build a pretty JSON string for display
-    prefs_json_str = json.dumps(prefs, indent=4)
+    new_prefs_json_str = json.dumps(new_prefs, indent=4)
 
     await update.message.reply_text(
-        text=f"Here are your current preferences:\n\n{prefs_json_str}\n\n Сахраняю в бдшку..." # Saving to database..."
+        text=f"Here are your current preferences:\n\n{new_prefs_json_str}\n\nSaving to database..."
     )
 
     # ==== Save to the database ====
@@ -436,11 +434,31 @@ async def confirm_preferences(update: Update, context: ContextTypes.DEFAULT_TYPE
         # Attempt to find the user
         existing_user = session.query(User).filter(User.id == user_id).first()
         if existing_user:
-            # Convert preferences to a JSON string
-            existing_user.preferences = json.dumps(prefs)
+            try:
+                # Load existing preferences
+                if existing_user.preferences:
+                    current_prefs = json.loads(existing_user.preferences)
+                    
+                    # Check if the loaded data is a list
+                    if not isinstance(current_prefs, list):
+                        raise ValueError("Existing preferences are not a valid list")
+                else:
+                    current_prefs = []
+            except (json.JSONDecodeError, ValueError) as e:
+                # If invalid data, clear preferences and start fresh
+                await update.message.reply_text(
+                    "Invalid preferences data found. Clearing and starting fresh."
+                )
+                current_prefs = []
+
+            # Append new preferences to the list
+            current_prefs.append(new_prefs)
+
+            # Save updated preferences
+            existing_user.preferences = json.dumps(current_prefs)
             try:
                 session.commit()
-                await update.message.reply_text("Preferences saved successfully!")
+                await update.message.reply_text("Preferences added successfully!")
             except Exception as e:
                 await update.message.reply_text(f"Error saving preferences: {e}")
         else:
