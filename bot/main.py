@@ -7,7 +7,7 @@ from bot.handlers.start_handler import start
 from bot.handlers.settings_handler import settings
 from bot.handlers.report_handler import report
 from bot.handlers.subscriptions_handler import handle_subscriptions
-from bot.handlers.check_preferences_handler import handle_check_preferences
+from bot.handlers.check_preferences_handler import handle_check_preferences, handle_remove_preference_selection, remove_preference_callback
 from bot.handlers.search_new_vehicle_handler import  (
     handle_search_new_vehicle,
     ask_vehicle_type,
@@ -66,6 +66,8 @@ MAIN_MENU = range(1)  # Use a single state
     CONFIRM,
 ) = range(18)
 
+REMOVE_PREFERENCE = 19
+
 # Logging setup
 logger = logging.getLogger(__name__)
 
@@ -79,6 +81,7 @@ async def set_bot_commands(application):
         BotCommand("support", "💬 Support"),
         BotCommand("report", "Report"),
         BotCommand("cancel", "Cancel"),
+        BotCommand("admin", "Admin Pannel"),
 
     ]
     await application.bot.set_my_commands(commands)
@@ -112,8 +115,7 @@ async def main():
     # Register command handlers
     application.add_handler(CommandHandler("settings", settings))
     application.add_handler(CommandHandler("report", report))
-    application.add_handler(CallbackQueryHandler(button_handler))
-
+    
     conv_handler = ConversationHandler(
         entry_points=[CommandHandler("start", start)],
         states={
@@ -151,6 +153,7 @@ async def main():
             SELECT_OPTIONAL_KEYWORDS: [MessageHandler(filters.TEXT & ~filters.COMMAND, ask_keywords)],
             SELECT_OPTIONAL_IMAGES: [MessageHandler(filters.TEXT & ~filters.COMMAND, ask_has_images)],
             CONFIRM: [MessageHandler(filters.TEXT & ~filters.COMMAND, confirm_preferences)],
+            REMOVE_PREFERENCE : [MessageHandler(filters.TEXT & ~filters.COMMAND, handle_remove_preference_selection)],
         },
         fallbacks = [
             MessageHandler(filters.COMMAND, fallback_handler)
@@ -184,13 +187,29 @@ async def main():
         ],
     )
     
+    preferences_vehicle_conv_handler = ConversationHandler(
+        entry_points=[CommandHandler("preferences", handle_check_preferences)],
+        states = {
+            REMOVE_PREFERENCE : [MessageHandler(filters.TEXT & ~filters.COMMAND, handle_remove_preference_selection)]
+        },
+        fallbacks = [
+            MessageHandler(filters.COMMAND, fallback_handler)
+        ],
+    )
+    
     # application.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, settings))
 
 
     application.add_handler(conv_handler)
     application.add_handler(search_vehicle_conv_handler)
-
-
+    application.add_handler(preferences_vehicle_conv_handler)
+    application.add_handler(
+        CallbackQueryHandler(button_handler, pattern=r"^some_prefix:.+")
+    )
+    # Теперь remove_pref:\d+$ не «зацепится» за этот pattern
+    application.add_handler(
+        CallbackQueryHandler(remove_preference_callback, pattern=r"^remove_pref:\d+$")
+    )
     # Set bot commands
     await set_bot_commands(application)
     

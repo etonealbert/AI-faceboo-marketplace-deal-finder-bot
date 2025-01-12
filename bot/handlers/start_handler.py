@@ -29,7 +29,7 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
         # Check if the user already exists
         existing_user = (
             session.query(User)
-            .filter((User.id == user.id))
+            .filter((User.telegram_id == user.id))
             .first()
         )
 
@@ -42,14 +42,14 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
                 keyboard = [
                     [KeyboardButton("Check preferences")],
                     [KeyboardButton("Subscriptions")],
-                    [KeyboardButton("Search new vehicle")],
+                    [KeyboardButton("Subscribe on vehicle")],
                 ]
             else:
                 # Preferences do not exist, show only one button
                 keyboard = [[KeyboardButton("Search new vehicle")]]
         else:
             # Create a new user if it doesn't exist
-            new_user = User(id=user.id, username=username)
+            new_user = User(telegram_id=user.id, username=username)
             session.add(new_user)
             session.commit()
             logger.info(f"Created new user {username} with ID {user.id}")

@@ -8,7 +8,7 @@ def setup_logging():
     
     # Добавляем обработчик для консоли, если необходимо
     console_handler = logging.StreamHandler()
-    console_handler.setLevel(logging.INFO)
+    console_handler.setLevel(logging.DEBUG)
     formatter = logging.Formatter("%(asctime)s - %(levelname)s - %(name)s - %(message)s")
     console_handler.setFormatter(formatter)
     

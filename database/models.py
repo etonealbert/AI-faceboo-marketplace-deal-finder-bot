@@ -11,6 +11,7 @@ class User(Base):
     __tablename__ = 'users'
 
     id = Column(Integer, primary_key=True, autoincrement=True)
+    telegram_id = Column(Integer, unique=True, nullable=False) 
     username = Column(String, nullable=False)
     # We'll store `preferences` as JSON in a TEXT field in SQLite
     preferences = Column(Text, nullable=True)

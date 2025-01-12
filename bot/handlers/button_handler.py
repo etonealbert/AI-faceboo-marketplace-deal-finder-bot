@@ -6,15 +6,20 @@ async def button_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
     query = update.callback_query
     await query.answer()  # Acknowledge the callback query
 
+    data = query.data
     # Handle button actions based on callback_data
-    if query.data == 'payment_settings':
-        await query.edit_message_text(text="💰 Payments is not setup")
-    elif query.data == 'gpt_model':
-        await query.edit_message_text(text="🤖 No GPT Available")
-    elif query.data == 'facebook_login':
-        await query.edit_message_text(text="Facebook Login Failed")
-    elif query.data == 'other_settings':
-        await query.edit_message_text(text="⚙️ No other setting")
+    if data.startswith("some_prefix:"):
+        action = data.split(":")[1]  # Извлекаем действие после префикса
+    if action == "payment_settings":
+        await query.edit_message_text(text="You selected Payment Settings.")
+    elif action == "gpt_model":
+        await query.edit_message_text(text="You selected GPT Model.")
+    elif action == "facebook_login":
+        await query.edit_message_text(text="You selected Facebook Login.")
+    elif action == "other_settings":
+        await query.edit_message_text(text="You selected Other Settings.")
+    else:
+        await query.edit_message_text(text="Unknown action.")
 
 
 

@@ -432,7 +432,7 @@ async def confirm_preferences(update: Update, context: ContextTypes.DEFAULT_TYPE
     user_id = update.effective_user.id  # or get from context / your logic
     with SessionLocal() as session:
         # Attempt to find the user
-        existing_user = session.query(User).filter(User.id == user_id).first()
+        existing_user = session.query(User).filter(User.telegram_id  == user_id).first()
         if existing_user:
             try:
                 # Load existing preferences
