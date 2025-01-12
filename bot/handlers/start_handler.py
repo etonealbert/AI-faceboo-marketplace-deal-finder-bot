@@ -42,7 +42,7 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
                 keyboard = [
                     [KeyboardButton("Check preferences")],
                     [KeyboardButton("Subscriptions")],
-                    [KeyboardButton("Subscribe on vehicle")],
+                    [KeyboardButton("Setup vehicle preferences")],
                 ]
             else:
                 # Preferences do not exist, show only one button
@@ -55,7 +55,7 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
             logger.info(f"Created new user {username} with ID {user.id}")
 
             # New user, show only one button
-            keyboard = [[KeyboardButton("Search new vehicle")]]
+            keyboard = [[KeyboardButton("Setup vehicle preferences")]]
 
     # Send a message with the appropriate buttons
     reply_markup = ReplyKeyboardMarkup(keyboard, resize_keyboard=True)

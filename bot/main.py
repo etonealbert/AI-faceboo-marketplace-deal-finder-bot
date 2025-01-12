@@ -121,7 +121,7 @@ async def main():
         states={
             MAIN_MENU: [
                 MessageHandler(
-                    filters.TEXT & filters.Regex("^Search new vehicle$"),
+                    filters.TEXT & filters.Regex("^Setup vehicle preferences$"),
                     handle_search_new_vehicle
                 ),
                 MessageHandler(
