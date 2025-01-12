@@ -1,5 +1,10 @@
 from telegram import Update
 from telegram.ext import ContextTypes
 
-async def report(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    await update.message.reply_text("Ваш отчёт готов.")
+REPORT_STATE, ADMIN_STATE, SUPPORT_STATE, UPDATE_STATE = range(20, 24)
+
+async def handle_report(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    await update.message.reply_text("Report is not ready.")
+    
+    return REPORT_STATE
+ 

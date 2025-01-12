@@ -5,7 +5,6 @@ from telegram.ext import  CommandHandler, MessageHandler, filters, ConversationH
 from config.settings import TELEGRAM_BOT_TOKEN
 from bot.handlers.start_handler import start
 from bot.handlers.settings_handler import settings
-from bot.handlers.report_handler import report
 from bot.handlers.subscriptions_handler import handle_subscriptions
 from bot.handlers.check_preferences_handler import handle_check_preferences, handle_remove_preference_selection, remove_preference_callback
 from bot.handlers.search_new_vehicle_handler import  (
@@ -37,6 +36,10 @@ from database.models import User, ContactedSeller
 from telegram import BotCommand
 from telegram.ext import CallbackQueryHandler
 from bot.handlers.button_handler import button_handler
+from bot.handlers.support_handler import handle_support
+from bot.handlers.admin_pannel_handler import handle_admin_pannel
+from  bot.handlers.update_handler import handle_update
+from bot.handlers.report_handler import handle_report
 
 import nest_asyncio
 nest_asyncio.apply()
@@ -67,6 +70,8 @@ MAIN_MENU = range(1)  # Use a single state
 ) = range(18)
 
 REMOVE_PREFERENCE = 19
+
+REPORT_STATE, ADMIN_STATE, SUPPORT_STATE, UPDATE_STATE = range(20, 24)
 
 # Logging setup
 logger = logging.getLogger(__name__)
@@ -114,7 +119,6 @@ async def main():
 
     # Register command handlers
     application.add_handler(CommandHandler("settings", settings))
-    application.add_handler(CommandHandler("report", report))
     
     conv_handler = ConversationHandler(
         entry_points=[CommandHandler("start", start)],
@@ -197,8 +201,51 @@ async def main():
         ],
     )
     
-    # application.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, settings))
+    report_conv_handler = ConversationHandler(
+        entry_points=[CommandHandler("report", handle_report)],
+        states={
+            REPORT_STATE: [
+                MessageHandler(filters.TEXT & ~filters.COMMAND, handle_report)
+            ],
+        },
+        fallbacks=[CommandHandler("cancel", fallback_handler)],
+    )
 
+    admin_pannel_conv_handler = ConversationHandler(
+        entry_points=[CommandHandler("admin", handle_admin_pannel)],
+        states={
+            ADMIN_STATE: [
+                MessageHandler(filters.TEXT & ~filters.COMMAND, handle_admin_pannel)
+            ],
+        },
+        fallbacks=[CommandHandler("cancel", fallback_handler)],
+    )
+
+    support_conv_handler = ConversationHandler(
+        entry_points=[CommandHandler("support", handle_support)],
+        states={
+            SUPPORT_STATE: [
+                MessageHandler(filters.TEXT & ~filters.COMMAND, handle_support)
+            ],
+        },
+        fallbacks=[CommandHandler("cancel", fallback_handler)],
+    )
+
+    update_conv_handler = ConversationHandler(
+        entry_points=[CommandHandler("update", handle_update)],
+        states={
+            UPDATE_STATE: [
+                MessageHandler(filters.TEXT & ~filters.COMMAND, handle_update)
+            ],
+        },
+        fallbacks=[CommandHandler("cancel", fallback_handler)],
+    )
+
+    # Add handlers to the application
+    application.add_handler(report_conv_handler)
+    application.add_handler(admin_pannel_conv_handler)
+    application.add_handler(support_conv_handler)
+    application.add_handler(update_conv_handler)
 
     application.add_handler(conv_handler)
     application.add_handler(search_vehicle_conv_handler)
