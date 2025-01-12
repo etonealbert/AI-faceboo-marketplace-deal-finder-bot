@@ -176,9 +176,15 @@ async def ask_condition(update: Update, context: ContextTypes.DEFAULT_TYPE) -> i
         context.user_data["preferences"]["condition"] = user_choice
 
     # Proceed to vehicle details: price, year, mileage
-    await update.message.reply_text("What is your price range? Example: `1000 - 5000` or `Skip`")
+    await update.message.reply_text(
+        "What is your price range? Example: `1000 - 5000` or `Skip`",
+        reply_markup=ReplyKeyboardMarkup(
+            [[KeyboardButton("Skip")]],
+            resize_keyboard=True,
+            one_time_keyboard=True,
+        )
+    )
     return SELECT_PRICE_RANGE
-
 
 async def ask_price_range(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
     user_choice = update.message.text.strip()
@@ -190,9 +196,15 @@ async def ask_price_range(update: Update, context: ContextTypes.DEFAULT_TYPE) ->
         price_range = user_choice.replace("$", "").replace(" ", "")
         context.user_data["preferences"]["price_range"] = price_range
 
-    await update.message.reply_text("What is your preferred year range? Example: `2000 - 2020` or `Skip`")
+    await update.message.reply_text(
+        "What is your preferred year range? Example: `2000 - 2020` or `Skip`",
+        reply_markup=ReplyKeyboardMarkup(
+            [[KeyboardButton("Skip")]],
+            resize_keyboard=True,
+            one_time_keyboard=True,
+        )
+    )
     return SELECT_YEAR_RANGE
-
 
 async def ask_year_range(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
     user_choice = update.message.text.strip()
@@ -202,7 +214,14 @@ async def ask_year_range(update: Update, context: ContextTypes.DEFAULT_TYPE) -> 
     else:
         context.user_data["preferences"]["year_range"] = user_choice.replace(" ", "")
 
-    await update.message.reply_text("What is your preferred mileage range? Example: `0 - 50000` or `Skip`")
+    await update.message.reply_text(
+        "What is your preferred mileage range? Example: `0 - 50000` or `Skip`",
+        reply_markup=ReplyKeyboardMarkup(
+            [[KeyboardButton("Skip")]],
+            resize_keyboard=True,
+            one_time_keyboard=True,
+        )
+    )
     return SELECT_MILEAGE_RANGE
 
 
@@ -214,16 +233,21 @@ async def ask_mileage_range(update: Update, context: ContextTypes.DEFAULT_TYPE) 
     else:
         context.user_data["preferences"]["mileage_range"] = user_choice.replace(" ", "")
 
-    # Next: If vehicle_type is 'Car', ask car-specific details; else go to confirmation
     vehicle_type = context.user_data["preferences"].get("vehicle_type", "").lower()
     if vehicle_type == "car":
         await update.message.reply_text(
-            "What color of car do you prefer? (e.g., Red, Black, White) or Skip"
+            "What color of car do you prefer? (e.g., Red, Black, White) or Skip",
+            reply_markup=ReplyKeyboardMarkup(
+                [[KeyboardButton("Skip")]],
+                resize_keyboard=True,
+                one_time_keyboard=True,
+            )
         )
         return SELECT_CAR_COLOR
     else:
         # Motorcycle chosen, skip car-specific steps
         return await confirm_preferences(update, context)
+
 
 async def ask_car_color(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
     user_choice = update.message.text.strip()

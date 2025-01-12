@@ -17,9 +17,10 @@ from telegram.ext import (
 from database.db import SessionLocal
 from sqlalchemy.orm import Session
 from database.models import User
+from bot.utils.formatters import format_preference
 import logging
 from config.logging_config import setup_logging
-
+from telegram.helpers import escape_markdown
 
 logger = logging.getLogger(__name__)
 
@@ -72,16 +73,33 @@ async def handle_check_preferences(update: Update, context: ContextTypes.DEFAULT
         await update.message.reply_text("У вас нет установленных предпочтений.")
         return ConversationHandler.END
 
-    
-
-    # Создаём инлайн-кнопки для каждого предпочтения
     keyboard = []
+    preferences_texts = []
+
     for idx, preference in enumerate(preferences, start=1):
+        # Escape the text for MarkdownV2
+        preferences_texts.append(f"{idx}. {format_preference(preference)}")
+
+        button_text = f"Remove {preference['make']} {preference['model']}"
+        if preference.get("year_range"):
+            button_text += f" ({preference['year_range']})"
+
         button = InlineKeyboardButton(
-            text=f"Remove '{preference}'",
-            callback_data=f"remove_pref:{idx - 1}",  # Используем индекс для идентификации
+            text=escape_markdown(button_text, version=2),  # Escape button text
+            callback_data=f"remove_pref:{idx - 1}"
         )
         keyboard.append([button])
+        
+    preferences_text = "\n\n".join(preferences_texts)
+    preferences_text = escape_markdown(preferences_text, version=2)
+
+    await update.message.reply_text(
+        f"All preferences:\n\n{preferences_text}",
+        reply_markup=ReplyKeyboardRemove(), 
+        parse_mode="MarkdownV2"  
+
+    )
+
 
     reply_markup = InlineKeyboardMarkup(keyboard)
 
