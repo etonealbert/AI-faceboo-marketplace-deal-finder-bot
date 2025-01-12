@@ -63,15 +63,16 @@ async def handle_check_preferences(update: Update, context: ContextTypes.DEFAULT
         )
         return ConversationHandler.END
 
+    await update.message.reply_text(
+        "Ищу:",
+        reply_markup=ReplyKeyboardRemove()  # Удаляет клавиатуру
+    )
+    
     if not preferences:
         await update.message.reply_text("У вас нет установленных предпочтений.")
         return ConversationHandler.END
 
-    # Удаляем клавиатуру
-    await update.message.reply_text(
-        "Ищу хуйню:",
-        reply_markup=ReplyKeyboardRemove()  # Удаляет клавиатуру
-    )
+    
 
     # Создаём инлайн-кнопки для каждого предпочтения
     keyboard = []
