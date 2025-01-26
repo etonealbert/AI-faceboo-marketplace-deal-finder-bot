@@ -37,7 +37,7 @@ from telegram import BotCommand
 from telegram.ext import CallbackQueryHandler
 from bot.handlers.button_handler import button_handler
 from bot.handlers.support_handler import handle_support
-from bot.handlers.admin_pannel_handler import handle_admin_pannel
+from bot.handlers.admin_pannel_handler import handle_admin_pannel, handle_admin_panel_callback
 from  bot.handlers.update_handler import handle_update
 from bot.handlers.report_handler import handle_report
 
@@ -215,7 +215,8 @@ async def main():
         entry_points=[CommandHandler("admin", handle_admin_pannel)],
         states={
             ADMIN_STATE: [
-                MessageHandler(filters.TEXT & ~filters.COMMAND, handle_admin_pannel)
+                # Instead of a MessageHandler, we want a CallbackQueryHandler:
+                CallbackQueryHandler(handle_admin_panel_callback)
             ],
         },
         fallbacks=[CommandHandler("cancel", fallback_handler)],
